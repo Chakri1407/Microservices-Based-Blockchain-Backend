@@ -1,0 +1,5 @@
+{"level":"info","message":"User Service running on port 3000"}
+{"level":"info","message":"User registered: string"}
+{"level":"error","message":"Registration error: MongoServerError: E11000 duplicate key error collection: user-service.users index: email_1 dup key: { email: \"string\" }"}
+{"level":"info","message":"User Service running on port 3000"}
+{"level":"info","message":"User registered: user@example.com"}

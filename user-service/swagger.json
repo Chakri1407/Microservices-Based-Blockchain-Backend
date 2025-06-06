@@ -1,0 +1,61 @@
+{
+  "openapi": "3.0.0",
+  "info": { "title": "User Service API", "version": "1.0.0" },
+  "paths": {
+    "/register": {
+      "post": {
+        "summary": "Register a new user",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" },
+                  "role": { "type": "string", "enum": ["user", "admin"] }
+                }
+              }
+            }
+          },
+          "responses": { "201": { "description": "User registered" } }
+        }
+      },
+      "/login": {
+        "post": {
+          "summary": "Login user",
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "email": { "type": "string" },
+                    "password": { "type": "string" }
+                  }
+                }
+              }
+            },
+            "responses": { "200": { "description": "JWT token" } }
+          }
+        },
+        "/users/{id}": {
+          "get": {
+            "summary": "Get user profile",
+            "parameters": [
+              { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+            ],
+            "responses": { "200": { "description": "User profile" } },
+            "security": [{ "bearerAuth": [] }]
+          }
+        }
+      },
+      "components": {
+        "securitySchemes": {
+          "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
+        }
+      }
+    }
+
+  }
+  }
