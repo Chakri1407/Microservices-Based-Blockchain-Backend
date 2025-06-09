@@ -1,0 +1,12 @@
+{
+    "openapi": "3.0.0",
+    "info": { "title": "Blockchain_service API", "version": "1.0.0" },
+    "paths": {
+        "/<endpoint>": {
+            "<method>": {
+                "summary": "<Description>",
+                "responses": { "200": { "description": "Success" } }
+            }
+        }
+    }
+}

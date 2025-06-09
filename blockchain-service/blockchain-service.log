@@ -1,0 +1,14 @@
+{"level":"info","message":"Task stored on blockchain: 12345, txHash: 0x879b1eeac30d39e573758bd2c0913f93efa5cee7e9cbcd214118be53099e27e8","timestamp":"2025-06-09T01:49:55.448Z"}
+{"level":"error","message":"Blockchain task retrieval error: Do not know how to serialize a BigInt","timestamp":"2025-06-09T01:51:07.446Z"}
+{"level":"info","message":"Blockchain Service running on port 3002","timestamp":"2025-06-09T01:57:36.999Z"}
+{"level":"info","message":"Blockchain connected successfully","timestamp":"2025-06-09T01:57:38.102Z"}
+{"level":"info","message":"Task updated on blockchain: 12345, txHash: 0xb3e7fb02cbf43e93e8f249ddc25fb0a274f7c5983d17baa70e9f14e708cea935","timestamp":"2025-06-09T02:03:52.018Z"}
+{"level":"info","message":"Task updated on blockchain: 12345, txHash: 0xe2f30c28adf24776a0c59ed10d181f3ecbecd8ad594d038794a103de21ac3706","timestamp":"2025-06-09T02:05:15.849Z"}
+{"level":"info","message":"Task deleted on blockchain: 12345, txHash: 0x2b90888790c3379ea5d0231d8111ab07ede9c193716d41bc5aa8acb5fb4e28c2","timestamp":"2025-06-09T02:05:51.890Z"}
+{"level":"info","message":"Blockchain Service running on port 3002","timestamp":"2025-06-09T02:26:05.443Z"}
+{"level":"info","message":"Blockchain connected successfully","timestamp":"2025-06-09T02:26:06.479Z"}
+{"level":"info","message":"Blockchain Service running on port 3002","timestamp":"2025-06-09T02:27:55.424Z"}
+{"level":"info","message":"Blockchain connected successfully","timestamp":"2025-06-09T02:27:56.349Z"}
+{"level":"info","message":"Task stored on blockchain: 67890, txHash: 0xe0cfb90c9d46243180b8bf973af4f19ebd7b8847be30d72ba4701d3848eb4cfb","timestamp":"2025-06-09T02:30:17.123Z"}
+{"level":"info","message":"Task updated on blockchain: 67890, txHash: 0xf24483035c1d2cb27c4b209c83e386880fa829c4a3443df36f30c10c67f8ee1e","timestamp":"2025-06-09T02:32:24.566Z"}
+{"level":"info","message":"Task deleted on blockchain: 67890, txHash: 0x6778025cc58cc38bae06848b1372097da93cde7c5dfb5b2842b398fba05de868","timestamp":"2025-06-09T02:33:12.549Z"}
