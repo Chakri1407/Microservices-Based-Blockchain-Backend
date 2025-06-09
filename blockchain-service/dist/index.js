@@ -41,6 +41,9 @@ const ethers_1 = require("ethers");
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const swaggerDocument = __importStar(require("./swagger.json"));
 const winston_1 = __importDefault(require("winston"));
+const dotenv_1 = __importDefault(require("dotenv"));
+// Load environment variables
+dotenv_1.default.config();
 const app = (0, express_1.default)();
 // Enhanced logging configuration
 const logger = winston_1.default.createLogger({
@@ -51,7 +54,7 @@ const logger = winston_1.default.createLogger({
         new winston_1.default.transports.File({ filename: 'blockchain-service.log' })
     ]
 });
-// Simple rate limiting middleware (alternative to express-rate-limit)
+// Simple rate limiting middleware
 const rateLimitMap = new Map();
 const rateLimit = (req, res, next) => {
     const ip = req.ip;
@@ -82,17 +85,20 @@ let wallet;
 let contract;
 const connectBlockchain = async () => {
     try {
-        provider = new ethers_1.ethers.JsonRpcProvider(process.env.ETHEREUM_NODE_URL || 'http://localhost:8545');
-        wallet = new ethers_1.ethers.Wallet(process.env.ADMIN_PRIVATE_KEY || '', provider);
-        const contractAddress = process.env.CONTRACT_ADDRESS || '';
+        console.log("ENV:", process.env.ETHEREUM_NODE_URL, process.env.ADMIN_PRIVATE_KEY, process.env.CONTRACT_ADDRESS); // Debug
+        if (!process.env.ETHEREUM_NODE_URL || !process.env.ADMIN_PRIVATE_KEY || !process.env.CONTRACT_ADDRESS) {
+            throw new Error('Missing required environment variables');
+        }
+        provider = new ethers_1.ethers.JsonRpcProvider(process.env.ETHEREUM_NODE_URL);
+        wallet = new ethers_1.ethers.Wallet(process.env.ADMIN_PRIVATE_KEY, provider);
+        const contractAddress = process.env.CONTRACT_ADDRESS;
         const contractABI = require('./TaskStorage.json').abi;
         contract = new ethers_1.ethers.Contract(contractAddress, contractABI, wallet);
-        // Test connection
         await provider.getBlockNumber();
         logger.info('Blockchain connected successfully');
     }
     catch (error) {
-        logger.error('Blockchain connection error:', error);
+        logger.error('Blockchain connection error:', { message: error.message || 'Unknown error', stack: error.stack || 'No stack' });
         setTimeout(connectBlockchain, 5000);
     }
 };
@@ -122,7 +128,7 @@ app.post('/blockchain/tasks', async (req, res) => {
         });
     }
     catch (error) {
-        logger.error(`Blockchain task creation error: ${error}`);
+        logger.error(`Blockchain task creation error: ${error.message || 'Unknown error'}`);
         res.status(400).json({ error: 'Error storing task on blockchain' });
     }
 });
@@ -144,7 +150,7 @@ app.put('/blockchain/tasks/:id', async (req, res) => {
         });
     }
     catch (error) {
-        logger.error(`Blockchain task update error: ${error}`);
+        logger.error(`Blockchain task update error: ${error.message || 'Unknown error'}`);
         res.status(400).json({ error: 'Error updating task on blockchain' });
     }
 });
@@ -162,7 +168,7 @@ app.delete('/blockchain/tasks/:id', async (req, res) => {
         });
     }
     catch (error) {
-        logger.error(`Blockchain task deletion error: ${error}`);
+        logger.error(`Blockchain task deletion error: ${error.message || 'Unknown error'}`);
         res.status(400).json({ error: 'Error deleting task on blockchain' });
     }
 });
@@ -170,61 +176,22 @@ app.delete('/blockchain/tasks/:id', async (req, res) => {
 app.get('/blockchain/tasks/:id', async (req, res) => {
     try {
         const task = await contract.getTask(req.params.id);
-        // Check if task is soft deleted
         if (task.isDeleted) {
             return res.status(404).json({ error: 'Task not found or deleted' });
         }
         res.json({
-            id: task.id,
+            id: task.id.toString(), // Convert BigInt to string
             title: task.title,
             description: task.description,
             userId: task.userId,
             status: task.status,
-            timestamp: task.timestamp,
+            timestamp: task.timestamp.toString(), // Convert BigInt to string
             isDeleted: task.isDeleted
         });
     }
     catch (error) {
-        logger.error(`Blockchain task retrieval error: ${error}`);
+        logger.error(`Blockchain task retrieval error: ${error.message || 'Unknown error'}`);
         res.status(400).json({ error: 'Error retrieving task from blockchain' });
-    }
-});
-// Batch create tasks on blockchain
-app.post('/blockchain/tasks/batch', async (req, res) => {
-    try {
-        const { tasks } = req.body;
-        if (!Array.isArray(tasks) || tasks.length === 0) {
-            return res.status(400).json({ error: 'Invalid tasks array' });
-        }
-        // Prepare task data for batch operation
-        const ids = [];
-        const titles = [];
-        const descriptions = [];
-        const userIds = [];
-        const statuses = [];
-        for (const task of tasks) {
-            if (!task.id || !task.title || !task.description || !task.userId) {
-                return res.status(400).json({ error: 'Missing required fields in task' });
-            }
-            ids.push(task.id);
-            titles.push(task.title);
-            descriptions.push(task.description);
-            userIds.push(task.userId);
-            statuses.push(task.status || 'pending');
-        }
-        const tx = await contract.batchCreateTasks(ids, titles, descriptions, userIds, statuses);
-        const receipt = await tx.wait();
-        logger.info(`Batch created ${tasks.length} tasks on blockchain, txHash: ${tx.hash}`);
-        res.status(201).json({
-            txHash: tx.hash,
-            blockNumber: receipt.blockNumber,
-            gasUsed: receipt.gasUsed.toString(),
-            tasksCreated: tasks.length
-        });
-    }
-    catch (error) {
-        logger.error(`Blockchain batch task creation error: ${error}`);
-        res.status(400).json({ error: 'Error storing tasks on blockchain' });
     }
 });
 // Health check endpoint

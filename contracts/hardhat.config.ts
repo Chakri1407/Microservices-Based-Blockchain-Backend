@@ -2,6 +2,7 @@ import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-ignition";
 import * as dotenv from "dotenv";
+import "@nomicfoundation/hardhat-network-helpers"; 
 
 dotenv.config();
 

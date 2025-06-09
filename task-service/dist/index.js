@@ -39,7 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const amqplib_1 = __importDefault(require("amqplib"));
+const amqp = __importStar(require("amqplib"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const swaggerDocument = __importStar(require("./swagger.json"));
 const winston_1 = __importDefault(require("winston"));
@@ -75,12 +75,12 @@ const connectDB = async () => {
     }
 };
 connectDB();
-// RabbitMQ connection management
+// RabbitMQ connection management - Fixed types
 let connection = null;
 let channel = null;
 const connectQueue = async () => {
     try {
-        connection = await amqplib_1.default.connect(process.env.RABBITMQ_URL || 'amqp://localhost');
+        connection = await amqp.connect(process.env.RABBITMQ_URL || 'amqp://localhost');
         channel = await connection.createChannel();
         await channel.assertQueue('taskQueue');
         logger.info('RabbitMQ connected successfully');
@@ -96,11 +96,15 @@ const authenticateToken = (req, res, next) => {
     try {
         const authHeader = req.headers['authorization'];
         const token = authHeader && authHeader.split(' ')[1];
-        if (!token)
-            return res.status(401).json({ error: 'Access denied' });
+        if (!token) {
+            res.status(401).json({ error: 'Access denied' });
+            return;
+        }
         jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || 'secret', (err, user) => {
-            if (err)
-                return res.status(403).json({ error: 'Invalid token' });
+            if (err) {
+                res.status(403).json({ error: 'Invalid token' });
+                return;
+            }
             req.user = user;
             next();
         });
@@ -115,7 +119,8 @@ app.post('/tasks', authenticateToken, async (req, res) => {
     try {
         const { title, description } = req.body;
         if (!title || !description) {
-            return res.status(400).json({ error: 'Title and description are required' });
+            res.status(400).json({ error: 'Title and description are required' });
+            return;
         }
         const task = new task_1.Task({
             title,
@@ -125,7 +130,7 @@ app.post('/tasks', authenticateToken, async (req, res) => {
         });
         await task.save();
         if (channel) {
-            channel.sendToQueue('taskQueue', Buffer.from(JSON.stringify({
+            await channel.sendToQueue('taskQueue', Buffer.from(JSON.stringify({
                 id: task._id,
                 title,
                 description,
@@ -145,10 +150,13 @@ app.put('/tasks/:id', authenticateToken, async (req, res) => {
     try {
         const { title, description, status } = req.body;
         const task = await task_1.Task.findOne({ _id: req.params.id, isDeleted: false });
-        if (!task)
-            return res.status(404).json({ error: 'Task not found' });
+        if (!task) {
+            res.status(404).json({ error: 'Task not found' });
+            return;
+        }
         if (req.user.role !== 'admin' && task.userId.toString() !== req.user.id) {
-            return res.status(403).json({ error: 'Access denied' });
+            res.status(403).json({ error: 'Access denied' });
+            return;
         }
         const updates = {};
         if (title)
@@ -158,14 +166,19 @@ app.put('/tasks/:id', authenticateToken, async (req, res) => {
         if (status)
             updates.status = status;
         const updatedTask = await task_1.Task.findByIdAndUpdate(req.params.id, { $set: updates }, { new: true });
-        if (channel) {
-            channel.sendToQueue('taskQueue', Buffer.from(JSON.stringify({
+        if (channel && updatedTask) {
+            await channel.sendToQueue('taskQueue', Buffer.from(JSON.stringify({
                 id: task._id,
                 ...updates
             })));
         }
         logger.info(`Task updated: ${task._id}`);
-        res.json({ id: updatedTask._id, status: updatedTask.status });
+        if (updatedTask) {
+            res.json({ id: updatedTask._id, status: updatedTask.status });
+        }
+        else {
+            res.status(500).json({ error: 'Failed to update task' });
+        }
     }
     catch (error) {
         logger.error(`Task update error: ${error}`);
@@ -176,15 +189,18 @@ app.put('/tasks/:id', authenticateToken, async (req, res) => {
 app.delete('/tasks/:id', authenticateToken, async (req, res) => {
     try {
         const task = await task_1.Task.findById(req.params.id);
-        if (!task)
-            return res.status(404).json({ error: 'Task not found' });
-        if (req.user.role !== 'admin' && task.userId.toString() !== req.user.id) {
-            return res.status(403).json({ error: 'Access denied' });
+        if (!task) {
+            res.status(404).json({ error: 'Task not found' });
+            return;
         }
-        task.isDeleted = true;
-        await task.save();
+        if (req.user.role !== 'admin' && task.userId.toString() !== req.user.id) {
+            res.status(403).json({ error: 'Access denied' });
+            return;
+        }
+        // Update the task to set isDeleted flag
+        await task_1.Task.findByIdAndUpdate(req.params.id, { $set: { isDeleted: true } });
         if (channel) {
-            channel.sendToQueue('taskQueue', Buffer.from(JSON.stringify({
+            await channel.sendToQueue('taskQueue', Buffer.from(JSON.stringify({
                 id: task._id,
                 operation: 'delete'
             })));
@@ -201,10 +217,13 @@ app.delete('/tasks/:id', authenticateToken, async (req, res) => {
 app.get('/tasks/:id', authenticateToken, async (req, res) => {
     try {
         const task = await task_1.Task.findOne({ _id: req.params.id, isDeleted: false });
-        if (!task)
-            return res.status(404).json({ error: 'Task not found' });
+        if (!task) {
+            res.status(404).json({ error: 'Task not found' });
+            return;
+        }
         if (req.user.role !== 'admin' && task.userId.toString() !== req.user.id) {
-            return res.status(403).json({ error: 'Access denied' });
+            res.status(403).json({ error: 'Access denied' });
+            return;
         }
         res.json(task);
     }
@@ -250,15 +269,17 @@ app.get('/tasks', authenticateToken, async (req, res) => {
 app.post('/tasks/batch/status', authenticateToken, async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
-            return res.status(403).json({ error: 'Access denied' });
+            res.status(403).json({ error: 'Access denied' });
+            return;
         }
         const { taskIds, status } = req.body;
         if (!Array.isArray(taskIds) || !status) {
-            return res.status(400).json({ error: 'Invalid input' });
+            res.status(400).json({ error: 'Invalid input' });
+            return;
         }
         const result = await task_1.Task.updateMany({ _id: { $in: taskIds }, isDeleted: false }, { $set: { status } });
         if (channel) {
-            channel.sendToQueue('taskQueue', Buffer.from(JSON.stringify({
+            await channel.sendToQueue('taskQueue', Buffer.from(JSON.stringify({
                 taskIds,
                 status,
                 operation: 'batchUpdate'
@@ -278,11 +299,16 @@ app.post('/tasks/batch/status', authenticateToken, async (req, res) => {
 // Graceful shutdown
 process.on('SIGTERM', async () => {
     logger.info('SIGTERM received. Shutting down gracefully...');
-    if (channel)
-        await channel.close();
-    if (connection)
-        await connection.close();
-    await mongoose_1.default.connection.close();
+    try {
+        if (channel)
+            await channel.close();
+        if (connection)
+            await connection.close();
+        await mongoose_1.default.connection.close();
+    }
+    catch (error) {
+        logger.error('Error during graceful shutdown:', error);
+    }
     process.exit(0);
 });
 app.listen(3001, () => logger.info('Task Service running on port 3001'));
