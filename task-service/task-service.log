@@ -755,3 +755,11 @@
 {"level":"info","message":"Task Service running on port 3001","timestamp":"2025-06-09T00:48:41.305Z"}
 {"level":"info","message":"MongoDB connected successfully","timestamp":"2025-06-09T00:48:41.349Z"}
 {"level":"info","message":"RabbitMQ connected successfully","timestamp":"2025-06-09T00:48:41.362Z"}
+{"level":"info","message":"Task Service running on port 3001","timestamp":"2025-06-09T00:52:41.298Z"}
+{"level":"info","message":"MongoDB connected successfully","timestamp":"2025-06-09T00:52:41.312Z"}
+{"level":"info","message":"RabbitMQ connected successfully","timestamp":"2025-06-09T00:52:41.320Z"}
+{"level":"info","message":"Task created: 684633516b3aec8f7bdeb619","timestamp":"2025-06-09T01:05:21.050Z"}
+{"level":"info","message":"Task updated: 684633516b3aec8f7bdeb619","timestamp":"2025-06-09T01:07:37.291Z"}
+{"level":"info","message":"Task deleted: 684633516b3aec8f7bdeb619","timestamp":"2025-06-09T01:09:49.837Z"}
+{"level":"info","message":"Task created: 684634866b3aec8f7bdeb61f","timestamp":"2025-06-09T01:10:30.581Z"}
+{"level":"info","message":"Batch status update: 1 tasks","timestamp":"2025-06-09T01:15:08.066Z"}

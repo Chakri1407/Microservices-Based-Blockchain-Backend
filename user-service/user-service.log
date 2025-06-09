@@ -5,3 +5,15 @@
 {"level":"info","message":"User registered: user@example.com"}
 {"level":"info","message":"User logged in: user@example.com"}
 {"level":"info","message":"User Service running on port 3000"}
+{"level":"info","message":"User Service running on port 3000"}
+{"level":"error","message":"Registration error: MongoServerError: E11000 duplicate key error collection: user-service.users index: email_1 dup key: { email: \"user@example.com\" }"}
+{"level":"info","message":"User registered: user1@example.com"}
+{"level":"info","message":"User registered: admin@example.com"}
+{"level":"info","message":"User logged in: user1@example.com"}
+{"level":"info","message":"User logged in: admin@example.com"}
+{"level":"info","message":"User logged in: user@example.com"}
+{"level":"info","message":"User logged in: user@example.com"}
+{"level":"info","message":"User logged in: user1@example.com"}
+{"level":"info","message":"User logged in: admin@example.com"}
+{"level":"info","message":"User logged in: user1@example.com"}
+{"level":"info","message":"User logged in: admin@example.com"}
