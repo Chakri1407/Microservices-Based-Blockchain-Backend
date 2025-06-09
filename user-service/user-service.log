@@ -17,3 +17,6 @@
 {"level":"info","message":"User logged in: admin@example.com"}
 {"level":"info","message":"User logged in: user1@example.com"}
 {"level":"info","message":"User logged in: admin@example.com"}
+{"level":"info","message":"User Service running on port 3000"}
+{"level":"info","message":"User registered: user2@example.com"}
+{"level":"info","message":"User logged in: user2@example.com"}

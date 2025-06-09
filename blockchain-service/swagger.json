@@ -1,11 +1,204 @@
 {
   "openapi": "3.0.0",
-  "info": { "title": "Blockchain_service API", "version": "1.0.0" },
+  "info": {
+    "title": "Blockchain Service API",
+    "description": "API for managing tasks on the Polygon Amoy blockchain",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3002",
+      "description": "Local server"
+    }
+  ],
   "paths": {
-    "/<endpoint>": {
-      "<method>": {
-        "summary": "<Description>",
-        "responses": { "200": { "description": "Success" } }
+    "/health": {
+      "get": {
+        "summary": "Check service health",
+        "description": "Returns the health status of the Blockchain Service",
+        "responses": {
+          "200": {
+            "description": "Health status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uptime": { "type": "number" },
+                    "timestamp": { "type": "number" },
+                    "blockchain": { "type": "boolean" },
+                    "provider": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/blockchain/tasks": {
+      "post": {
+        "summary": "Create a task on blockchain",
+        "description": "Stores a new task on the blockchain",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "string" },
+                  "title": { "type": "string" },
+                  "description": { "type": "string" },
+                  "userId": { "type": "string" },
+                  "status": { "type": "string" }
+                },
+                "required": ["id", "title", "description", "userId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Task created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "txHash": { "type": "string" },
+                    "blockNumber": { "type": "number" },
+                    "gasUsed": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
+    "/blockchain/tasks/{id}": {
+      "get": {
+        "summary": "Get a task from blockchain",
+        "description": "Retrieves a task by ID from the blockchain",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "title": { "type": "string" },
+                    "description": { "type": "string" },
+                    "userId": { "type": "string" },
+                    "status": { "type": "string" },
+                    "timestamp": { "type": "string" },
+                    "isDeleted": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error retrieving task"
+          },
+          "404": {
+            "description": "Task not found or deleted"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a task on blockchain",
+        "description": "Updates a task by ID on the blockchain",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "description": { "type": "string" },
+                  "status": { "type": "string" }
+                },
+                "required": ["title", "description", "status"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "txHash": { "type": "string" },
+                    "blockNumber": { "type": "number" },
+                    "gasUsed": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Soft delete a task on blockchain",
+        "description": "Soft deletes a task by ID on the blockchain",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "txHash": { "type": "string" },
+                    "blockNumber": { "type": "number" },
+                    "gasUsed": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error deleting task"
+          }
+        }
       }
     }
   }
